@@ -38,13 +38,13 @@ if __name__ == "__main__":
 	no_of_proc = comm.Get_size()
 
 # Defining Integral boundaries and no. of iterations
-	a = 0.0
-	b = 1.0
-	n = 1000000
+	start_point = 0.0
+	end_point = 1.0
+	no_of_itr = 1000000
 	
 # Spread the workload amongst the processors and collecting
 
-	local_sum = midpoint_integral(start_point, end_point, no_of_itr, rank, no_of_proc)
+	local_sum = mid_point_integral_method(start_point, end_point, no_of_itr, rank, no_of_proc)
 	total_sum = comm.reduce(local_sum, op=MPI.SUM, root=0)
 	
 	if rank == 0:
