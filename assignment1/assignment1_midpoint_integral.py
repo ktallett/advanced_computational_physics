@@ -6,6 +6,7 @@
 # Import statements
 
 from mpi4py import MPI
+import time
 
 
 # Function to be integrated
@@ -40,9 +41,12 @@ if __name__ == "__main__":
 # Defining Integral boundaries and no. of iterations
 	start_point = 0.0
 	end_point = 1.0
-	no_of_itr = 1000000
+	no_of_itr = 10000000
 	
 # Spread the workload amongst the processors and collecting
+	
+	# Start timer
+	start_time = time.time()
 
 	local_sum = mid_point_integral_method(start_point, end_point, no_of_itr, rank, no_of_proc)
 	total_sum = comm.reduce(local_sum, op=MPI.SUM, root=0)
@@ -50,3 +54,7 @@ if __name__ == "__main__":
 	if rank == 0:
 		
 		print("Integral answer:", total_sum)
+		# End timer, calculate and print time taken
+		end_time = time.time()
+		time_taken = end_time - start_time
+		print("Time Taken:", time_taken, "sec")
