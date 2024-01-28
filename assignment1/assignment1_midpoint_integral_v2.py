@@ -6,8 +6,12 @@
 
 
 # Import statements
-from mpi4py import MPI
+""" Module providing timing capabilities. """
 import time
+from mpi4py import MPI
+
+
+
 
 
 comm = MPI.COMM_WORLD
@@ -15,26 +19,26 @@ my_rank = comm.Get_rank()
 p = comm.Get_size()
 
 # Function to be integrated
-def f(x):
-    return 4.0 / (1.0 + x * x)
+def integrand(integral_input):
+    return 4.0 / (1.0 + integral_input * integral_input)
 
 # Mid-point Integral method
-def mid_point_integral_method(start, end, num_intervals, h):
+def mid_point_integral_method(start, end, num_intervals, sub_interval_width):
     local_sum = 0.0
     for i in range(start, end):
-        x_midpoint = (i + 0.5) * h
-        local_sum += f(x_midpoint)
+        x_midpoint = (i + 0.5) * sub_interval_width
+        local_sum += integrand(x_midpoint)
     return local_sum
 
 # Define starting and end point of integral
-start_point = 0.0
-end_point = 1.0
+STARTPOINT = 0.0
+ENDPOINT = 1.0
 
 # Define number of intervals
-num_intervals = 1000000  
+num_intervals = 1000000
 
 # Width of each subinterval
-h = (end_point - start_point) / num_intervals
+SUBINTERVALWIDTH = (ENDPOINT - STARTPOINT) / num_intervals
 
 # Spread intervals equally to different processors // ensuring it is an integer number
 
@@ -46,7 +50,7 @@ local_start = my_rank * local_n
 local_end = (my_rank + 1) * local_n
 
 # Run mid-point integral function
-local_integral = mid_point_integral_method(local_start, local_end, num_intervals, h)
+local_integral = mid_point_integral_method(local_start, local_end, num_intervals, SUBINTERVALWIDTH)
 
 total_integral = 0.0
 
