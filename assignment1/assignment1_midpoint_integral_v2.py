@@ -55,15 +55,21 @@ local_integral = mid_point_integral_method(local_start, local_end, num_intervals
 total_integral = 0.0
 
 # Spread the workload amongst the processors using send and recieve
+
+# Start the timer
 start_time = time.time()
 
+# Checks if rank is 0
+# If yes sends out tasks to other to other processors
 if my_rank == 0:
     total_integral = local_integral
     for source in range(1, p):
         integral = comm.recv(source=source)
         total_integral += integral
+# If not, collects tasks performed by other processors
 else:
     comm.send(local_integral, dest=0)
+
 
 if my_rank == 0:
     pi_approx = total_integral / num_intervals
@@ -75,5 +81,5 @@ if my_rank == 0:
 
 
 
-# End parallelisation
+# End MPI enviroment
 MPI.Finalize()
