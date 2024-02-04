@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# MIT Licensed
+
 # Python script to calculate Pi utilising MPI using a mid-point integral
 
 # Run with 'mpirun -n 8 python assignment1_midpoint_integral_v2.py'
@@ -73,12 +75,11 @@ else:
 
 if my_rank == 0:
     pi_approx = total_integral / num_intervals
-    print("Approximation of Pi:", pi_approx)
+    print("Approximation of Pi:", "%.15f"%pi_approx, "to 15 significant figures.)
     # Calculate time taken
     end_time = time.time()
     time_taken = end_time - start_time
     print("Time Taken:", time_taken, "sec")
-
 
 
 # End MPI enviroment
