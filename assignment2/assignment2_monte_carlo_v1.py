@@ -1,7 +1,14 @@
-# Import libraries
+#!/usr/bin/env python3
+
+# MIT Licensed
+
+# Python to calculate the normal using the monte carlo using MPI to paralellize the process.
+
+# Import statements
 
 import math
 import numpy as np
+from mpi4py import MPI
 
 # Functions
 
@@ -35,3 +42,23 @@ def monte_carlo(no_of_samples, mu, sigma):
 	
 	# Returns the estimated value
 	return estimated_val
+
+
+if __name__ == '__main__':
+
+
+	comm = MPI.COMM_WORLD
+	rank = comm.Get_rank()
+	size = comm.Get_size()
+	
+	no_of_samples = 100000
+	total_no_of_samples = size * no_of_samples
+	
+	# Calculate an estimate on a single core
+	local_estimate = monte_carlo(num_samples_per_process, 0, 1)
+	
+	# Gathers all estimates and calculates the average of all cores processes
+	all_estimates = comm.gather(local_estimate, root=0)
+	
+	if rank == 0:
+		final_estimate = np.mean(all_estimates)
