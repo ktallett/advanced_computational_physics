@@ -40,6 +40,9 @@ def monte_carlo(no_of_samples, mu, sigma):
 	# Calcualtes the estimated value for the calculated pdf values
 	estimated_val = np.mean(pdf_vals)
 	
+	# Calculate estimated variance
+	estimated_var = np.var(pdf_vals)
+	
 	# Returns the estimated value
 	return estimated_val
 
@@ -55,7 +58,7 @@ if __name__ == '__main__':
 	total_no_of_samples = size * no_of_samples
 	
 	# Calculate an estimate on a single core
-	local_estimate = monte_carlo(num_samples_per_process, 0, 1)
+	local_estimate = monte_carlo(total_no_of_samples, 0, 1)
 	
 	# Gathers all estimates and calculates the average of all cores processes
 	all_estimates = comm.gather(local_estimate, root=0)
