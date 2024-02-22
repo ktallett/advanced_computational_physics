@@ -32,7 +32,7 @@ def normal_pdf(x, mu, sigma):
 
 def monte_carlo(no_of_samples, mu, sigma):
 
-	samples = np.random.normal(my, sigma, no_of_samples):
+	samples = np.random.normal(mu, sigma, no_of_samples)
 	
 	# Computes the probability density function
 	pdf_vals = np.array([normal_pdf(sample, mu, sigma) for sample in samples])
@@ -44,7 +44,7 @@ def monte_carlo(no_of_samples, mu, sigma):
 	estimated_var = np.var(pdf_vals)
 	
 	# Returns the estimated value
-	return estimated_val
+	return estimated_val, estimated_var
 
 
 if __name__ == '__main__':
@@ -58,10 +58,19 @@ if __name__ == '__main__':
 	total_no_of_samples = size * no_of_samples
 	
 	# Calculate an estimate on a single core
-	local_estimate = monte_carlo(total_no_of_samples, 0, 1)
+	local_estimate, local_estimate_var = monte_carlo(total_no_of_samples, 0, 1)
 	
 	# Gathers all estimates and calculates the average of all cores processes
-	all_estimates = comm.gather(local_estimate, root=0)
+	sum_estimates = comm.gather(local_estimate, root=0)
+	sum_variance = comm.gather(local_estimate_var, root=0)
+	
 	
 	if rank == 0:
-		final_estimate = np.mean(all_estimates)
+		final_sum_estimate = np.mean(sum_estimates)
+		final_sum_estimate_var = np.mean(sum_variance)
+		
+		errors = np.sqrt(final_sum_estimate_var/total_no_of_samples)
+		
+		print("Estimated integral :", final_sum_estimate)
+		print("Estimated variance :", final_sum_estimate_var)
+		print("Error bars :", errors)
