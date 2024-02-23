@@ -4,8 +4,12 @@
 
 # Python to calculate the normal using the monte carlo using MPI to paralellize the process.
 
+# Run with 'mpirun -n 4 python assignment2_monte_carlo_v1.py'
+
 # Import statements
 
+# Module providing timing capabilities. 
+import time
 import math
 import numpy as np
 from mpi4py import MPI
@@ -47,6 +51,9 @@ def monte_carlo(no_of_samples, mu, sigma):
 	return estimated_val, estimated_var
 
 
+# Start the timer
+start_time = time.time()
+
 if __name__ == '__main__':
 
 
@@ -70,7 +77,10 @@ if __name__ == '__main__':
 		final_sum_estimate_var = np.mean(sum_variance)
 		
 		errors = np.sqrt(final_sum_estimate_var/total_no_of_samples)
-		
+		# Calculate time taken
+		end_time = time.time()
+		time_taken = end_time - start_time		
 		print("Estimated integral :", final_sum_estimate)
 		print("Estimated variance :", final_sum_estimate_var)
 		print("Error bars :", errors)
+		print("Time Taken:", time_taken, "sec")
