@@ -65,9 +65,13 @@ if __name__ == '__main__':
 	dimensions = [1, 6]
 	
 	# Number of samples per dimension
-	no_of_samples_per_dim = 100000
+	no_of_samples_per_dim = 1000000
 	
 	# Identity matrixes
+	
+	# (EDIT HERE: To change distribution width)
+	# sigmas = [np.array([[width]]) np.eye(dimensions[1])]
+	# Change 'width' to 2.0 for width of 2 and so on.
 	sigmas = [np.eye(d) for d in dimensions]
 	
 	# Zero Mean vector for each dimension
