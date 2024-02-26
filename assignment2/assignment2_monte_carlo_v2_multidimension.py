@@ -4,7 +4,7 @@
 
 # Python to calculate the multidimensional normal using the monte carlo using MPI send and receive to paralellize the process.
 
-# Run with 'mpirun -n 4 python assignment2_monte_carlo_v1.py'
+# Run with 'mpirun -n 4 python assignment2_monte_carlo_v2_multidimension.py'
 
 # Import statements
 
@@ -34,18 +34,21 @@ def normal_pdf(x, mu, sigma):
     
 # Monte Carlo Method to estimate the normal
 
-def monte_carlo(no_of_samples, mu, sigma):
+def monte_carlo(no_of_samples, mu, sigma, g_mu, g_sigma):
 
 	samples = np.random.multivariate_normal(mu, sigma, no_of_samples)
 	
 	# Computes the probability density function
-	pdf_vals = np.array([normal_pdf(sample, mu, sigma) for sample in samples])
+	pdf_vals_f = np.array([normal_pdf(sample, mu, sigma) for sample in samples])
+	
+	pdf_vals_g = np.array([normal_pdf(sample, g_mu, g_sigma) for sample in samples])
+	
 	
 	# Calcualtes the estimated value for the calculated pdf values
-	estimated_val = np.mean(pdf_vals)
+	estimated_val = np.mean(pdf_vals_f/pdf_vals_g)
 	
 	# Calculate estimated variance
-	estimated_var = np.var(pdf_vals)
+	estimated_var = np.var(pdf_vals_f/pdf_vals_g)
 	
 	# Returns the estimated value
 	return estimated_val, estimated_var
@@ -65,7 +68,7 @@ if __name__ == '__main__':
 	dimensions = [1, 6]
 	
 	# Number of samples per dimension
-	no_of_samples_per_dim = 1000000
+	no_of_samples_per_dim = 100000
 	
 	# Identity matrixes
 	
@@ -77,24 +80,34 @@ if __name__ == '__main__':
 	# Zero Mean vector for each dimension
 	locations = [np.zeros(d) for d in dimensions]
 	
+	g_mu = np.zeros(dimensions[-1])
+	g_sigma = np.eye(dimensions[-1])
+	
 	local_estimates = []
 	
+	# Performs the Monte Carlo integration
+	
+	# Iterates over dimensions
 	for (dimension, sigma, location) in zip(dimensions, sigmas, locations):
+		
 		no_of_samples = size * no_of_samples_per_dim
-		local_estimate, local_estimate_var = monte_carlo(no_of_samples_per_dim, location, sigma)
+		local_estimate, local_estimate_var = monte_carlo(no_of_samples_per_dim, location, sigma, g_mu, g_sigma)
 		local_estimates.append((local_estimate, local_estimate_var))
 		
 	
 	all_estimates = comm.gather(local_estimates, root=0)
+	
+	# Once all the local results are gathered together
+	
 	if rank == 0:
 		for dimension, estimates in zip(dimensions, all_estimates):
 			print("Dimension: ", dimension)
 			for i, (estimated_val, estimated_var) in enumerate(estimates):
 				total_no_of_samples = no_of_samples_per_dim * size
-				error_val = np.sqrt(estimated_var / total_no_of_samples)
+				error_var = np.sqrt(estimated_var / total_no_of_samples)
 				print("Parameter Combo: ", i+1)
 				print("Estimated integral :", estimated_val)
 				print("Estimated variance :", estimated_var)
-				print("Error bars :", error_val)
+				print("Error of Variance bars :", error_var)
 
 		
