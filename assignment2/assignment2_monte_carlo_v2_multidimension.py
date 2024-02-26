@@ -2,7 +2,7 @@
 
 # MIT Licensed
 
-# Python to calculate the normal using the monte carlo using MPI to paralellize the process.
+# Python to calculate the multidimensional normal using the monte carlo using MPI send and receive to paralellize the process.
 
 # Run with 'mpirun -n 4 python assignment2_monte_carlo_v1.py'
 
@@ -52,7 +52,7 @@ def monte_carlo(no_of_samples, mu, sigma):
 
 
 # Start the timer
-start_time = time.time()
+#start_time = time.time()
 
 if __name__ == '__main__':
 
@@ -61,11 +61,11 @@ if __name__ == '__main__':
 	rank = comm.Get_rank()
 	size = comm.Get_size()
 	
-	# Dimensions
+	# Dimensions (EDIT HERE: To change dimensions)
 	dimensions = [1, 6]
 	
 	# Number of samples per dimension
-	no_of_samples = 100000
+	no_of_samples_per_dim = 100000
 	
 	# Identity matrixes
 	sigmas = [np.eye(d) for d in dimensions]
@@ -76,33 +76,21 @@ if __name__ == '__main__':
 	local_estimates = []
 	
 	for (dimension, sigma, location) in zip(dimensions, sigmas, locations):
-		total_no_of_samples = size * no_of_samples
-		local_estimate, local_estimate_var = monte_carlo(total_no_of_samples, location, sigma)
+		no_of_samples = size * no_of_samples_per_dim
+		local_estimate, local_estimate_var = monte_carlo(no_of_samples_per_dim, location, sigma)
 		local_estimates.append((local_estimate, local_estimate_var))
 		
 	
-	
+	all_estimates = comm.gather(local_estimates, root=0)
 	if rank == 0:
-		sum_estimates = []
-		
-		for i in range(1, size):
-			received_estimates = comm.recv(source=i)
-			sum_estimates.extend(received_estimates)
-		
-		for dimension, estimates in zip(dimensions_sum_estimates):
+		for dimension, estimates in zip(dimensions, all_estimates):
 			print("Dimension: ", dimension)
 			for i, (estimated_val, estimated_var) in enumerate(estimates):
-				total_no_of_samples_total = no_of_samples * size
-				error_val = np.sqrt(estimated_var / total_no_of_samples_total)
+				total_no_of_samples = no_of_samples_per_dim * size
+				error_val = np.sqrt(estimated_var / total_no_of_samples)
 				print("Parameter Combo: ", i+1)
 				print("Estimated integral :", estimated_val)
 				print("Estimated variance :", estimated_var)
 				print("Error bars :", error_val)
-	else:
-		comm.send(local_estimates, dest=0)
-		# print("Time Taken:", time_taken, "sec")
 
-		# Calculate time taken
-		# end_time = time.time()
-		# time_taken = end_time - start_time	
 		
