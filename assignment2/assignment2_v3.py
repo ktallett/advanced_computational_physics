@@ -2,7 +2,7 @@
 
 # MIT Licensed
 
-# Python to calculate the multidimensional normal using the monte carlo
+# Python to calculate the multidimensional normal using Monte Carlo
 # Using MPI reduce and SUM to parallelize the process.
 # Run with 'mpirun -n 4 python assignment2_v3.py'
 
@@ -21,27 +21,36 @@ class MonteCarloSimulation:
         self.num_simulations = num_simulations
         self.num_variables = num_variables
         self.global_seed = global_seed
-        # Set properties based on no of cores being used
+        # Set properties based on the number of cores being used
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
 
-    # Generates samples from seed, dimension and function
+    # Generates samples from seed, dimension, and function
     def _worker(self, seed, dimension, function, *args):
         """
         This function creates the samples for the simulation
         """
         np.random.seed(seed)
-        if dimension == 1:
-            samples = np.random.normal(loc=0, scale=1.0, size=self.num_simulations // self.size)
-        elif dimension > 1:
-            samples = np.random.multivariate_normal(mean=np.zeros(self.num_variables), cov=np.eye(self.num_variables), size=self.num_simulations // self.size)
-        else:
-            raise ValueError("Unsupported dimension")
+        # Generate samples using inverse sampling
+        samples = self._inverse_sampling(dimension)
         evaluations = function(samples, *args)
         local_mean = np.mean(evaluations)
         local_var = np.var(evaluations)
         return samples, local_mean, local_var
+    
+    # Inverse sampling function
+    def _inverse_sampling(self, dimension):
+        """
+        Generate samples using inverse sampling
+        """
+        samples = []
+        for _ in range(self.num_simulations // self.size):
+            # Generate samples using inverse sampling for each dimension
+            sample = np.random.uniform(0, 1, dimension)
+            samples.append(sample)
+        return np.array(samples)
+
     # Calculates errors of the integral
     def _compute_error(self, integral_values):
         """
@@ -55,11 +64,11 @@ class MonteCarloSimulation:
         mean_squared_diff = np.mean(squared_diff)
         error = np.sqrt(mean_squared_diff / (self.size - 1))
         return error
+    
     # Integrate function
     def run_integration(self, dimension, function, *args):
-        """"
-        
-        This function calculates the integral using MPI reduce to parallize the integration
+        """
+        This function calculates the integral using MPI reduce to parallelize the integration
         """
         local_seed = np.random.randint(0, 10000) if self.global_seed is None else self.global_seed + self.rank
         samples, local_mean, local_var = self._worker(local_seed, dimension, function, *args)
@@ -79,9 +88,7 @@ class MonteCarloSimulation:
 # Gaussian function to compute
 def normal_pdf(x_vals, mu_mv, sigma):
     """
-    
     Gaussian function
-    
     """
     # Calculating the coefficient of the integral
     coefficient = 1 / (math.sqrt((2 * math.pi) ** len(mu_mv) * np.linalg.det(sigma)))
@@ -93,12 +100,12 @@ def normal_pdf(x_vals, mu_mv, sigma):
     pdf_val = coefficient * np.exp(exponent)
     return pdf_val
 
-# Using the class and functions in main function
+# Using the class and functions in the main function
 def main():
 
     """
-    Main function to utilise the class features 
-    to calculate the integral of the gaussian distribution function
+    Main function to utilize the class features 
+    to calculate the integral of the Gaussian distribution function
     """
     start_time = time.time()
     # Number of samples
@@ -109,9 +116,7 @@ def main():
     mc_sim = MonteCarloSimulation(num_simulations, num_variables, global_seed)
     # EDIT: MEAN VECTOR SHIFT DISTRIBUTION
     mu_mv = np.zeros(num_variables)
-    #mu_mv = np.array([-3, -2, -1, 0, 1, 2, 3])
     # EDIT: SPREAD
-    #sigma = np.eye(num_variables)
     sigma = np.diag([1, 2, 3, 4, 5, 6])
     # Evaluate integral, mean, variance, and error
     samples, mean, variance, error = mc_sim.run_integration(num_variables, normal_pdf, mu_mv, sigma)
@@ -123,9 +128,8 @@ def main():
         print("Error in Integral:", error)
     end_time = time.time()
     time_taken = end_time - start_time
-    print("Time Taken:",time_taken)
+    print("Time Taken:", time_taken)
 
-# Check to see if main program being executed
-
+# Check to see if the main program is being executed
 if __name__ == "__main__":
     main()
