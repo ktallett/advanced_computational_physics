@@ -26,10 +26,10 @@ class MonteCarloSimulation:
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
 
-    # Generates samples from seed, dimension, and function
     def _worker(self, seed, dimension, function, *args):
         """
-        This function creates the samples for the simulation
+        This function creates the samples for the simulation 
+        from seed, dimension and function
         """
         np.random.seed(seed)
         # Generate samples using inverse sampling
@@ -39,7 +39,6 @@ class MonteCarloSimulation:
         local_var = np.var(evaluations)
         return samples, local_mean, local_var
     
-    # Inverse sampling function
     def _inverse_sampling(self, dimension):
         """
         Generate samples using inverse sampling
@@ -51,7 +50,6 @@ class MonteCarloSimulation:
             samples.append(sample)
         return np.array(samples)
 
-    # Calculates errors of the integral
     def _compute_error(self, integral_values):
         """
         This function calculates the errors of the integral
@@ -65,7 +63,6 @@ class MonteCarloSimulation:
         error = np.sqrt(mean_squared_diff / (self.size - 1))
         return error
     
-    # Integrate function
     def run_integration(self, dimension, function, *args):
         """
         This function calculates the integral using MPI reduce to parallelize the integration
@@ -120,12 +117,14 @@ def main():
     sigma = np.diag([1, 2, 3, 4, 5, 6])
     # Evaluate integral, mean, variance, and error
     samples, mean, variance, error = mc_sim.run_integration(num_variables, normal_pdf, mu_mv, sigma)
+    
     # Prints results if back at global
     if mc_sim.rank == 0:
         print("Worker Mean:", mean)
         print("Worker Variance:", variance)
+        # * 2 to adjust for the full domain
         print("Integral of Normal Distribution:", np.mean(samples) * 2)
-        print("Error in Integral:", error)
+        print("Error in Integral:", error * 2)
     if mc_sim.rank == 0:
         end_time = time.time()
         time_taken = end_time - start_time
