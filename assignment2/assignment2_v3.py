@@ -4,7 +4,9 @@
 
 # Python to calculate the multidimensional normal using Monte Carlo
 # Using MPI reduce and SUM to parallelize the process.
+# Uses the importance sampling method.
 # Run with 'mpirun -n 4 python assignment2_v3.py'
+# Edit n-tasks in job script for 8 and 16 to match 8 and 16 respectively
 
 # Import statements
 
