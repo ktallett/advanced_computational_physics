@@ -38,7 +38,6 @@ class MonteCarloSimulation:
         local_mean = np.mean(evaluations)
         local_var = np.var(evaluations)
         return samples, local_mean, local_var
-    
     def _inverse_sampling(self, dimension):
         """
         Generate samples using inverse sampling
@@ -62,7 +61,6 @@ class MonteCarloSimulation:
         mean_squared_diff = np.mean(squared_diff)
         error = np.sqrt(mean_squared_diff / (self.size - 1))
         return error
-    
     def run_integration(self, dimension, function, *args):
         """
         This function calculates the integral using MPI reduce to parallelize the integration
@@ -117,7 +115,6 @@ def main():
     sigma = np.diag([1, 2, 3, 4, 5, 6])
     # Evaluate integral, mean, variance, and error
     samples, mean, variance, error = mc_sim.run_integration(num_variables, normal_pdf, mu_mv, sigma)
-    
     # Prints results if back at global
     if mc_sim.rank == 0:
         print("Worker Mean:", mean)
