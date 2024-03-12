@@ -122,13 +122,15 @@ def main():
     samples, mean, variance, error = mc_sim.run_integration(num_variables, normal_pdf, mu_mv, sigma)
     # Prints results if back at global
     if mc_sim.rank == 0:
-        print("Worker Mean:", "%.4f"%mean)
-        print("Worker Variance:", "%.4f"%variance)
-        print("Integral of Normal Distribution:", "%.4f"%np.mean(samples))
-        print("Error in Integral:", "%.4f"%error)
-    end_time = time.time()
-    time_taken = end_time - start_time
-    print("Time Taken:", time_taken)
+        print("Worker Mean:", mean)
+        print("Worker Variance:", variance)
+        print("Integral of Normal Distribution:", np.mean(samples) * 2)
+        print("Error in Integral:", error)
+    if mc_sim.rank == 0:
+        end_time = time.time()
+        time_taken = end_time - start_time
+        print("Time Taken:", time_taken)
+
 
 # Check to see if the main program is being executed
 if __name__ == "__main__":
