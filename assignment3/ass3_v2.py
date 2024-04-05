@@ -7,6 +7,8 @@
 # Edit n-tasks in job script for 8 and 16 to match 8 and 16 respectively
 
 # Import statements
+import matplotlib
+matplotlib.use('Agg')
 from mpi4py import MPI
 import numpy as np
 import matplotlib.pyplot as plt
@@ -92,7 +94,21 @@ class RandomWalkSolver:
         mean_greens_function = np.mean(greens_function_values)
         std_dev_greens_function = np.std(greens_function_values)
         return mean_greens_function, std_dev_greens_function
-
+    
+    def plot_exit_probability(self, exit_probability, save_path):
+        """
+        Plot the probability of exiting at each point and save as an image
+        """
+        # Create a 2D array with the scalar value repeated to match the grid shape
+        exit_probabilities = np.full(self.grid_shape, exit_probability)
+        
+        plt.imshow(exit_probabilities, origin='lower', extent=self.region, cmap='viridis')
+        plt.colorbar(label='Exit Probability')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Exit Probability Distribution')
+        plt.savefig(save_path)
+        plt.close()
 def main():
     # Define region as (x_min, x_max, y_min, y_max)
     region = (0, 10, 0, 10)  
@@ -105,7 +121,14 @@ def main():
     # Solve Laplace equation in parallel
     potential_grid = random_walk_solver.solve_laplace_equation_parallel()
     
-        # Calculate Average Potential
+    # Calculate exit probabilities
+    exit_probabilities = np.mean(np.where(potential_grid == 0, 1, 0))
+
+    # Plot exit probability distribution
+    save_path = "exit_probabilities.png"
+    random_walk_solver.plot_exit_probability(exit_probabilities, save_path)
+    
+    # Calculate Average Potential
     total_potential = 0
     num_points = 0
     
